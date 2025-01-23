@@ -1,0 +1,45 @@
+<template>
+    <lightning-card>
+        
+        <div class="slds-grid slds-grid_align-spread slds-p-horizontal_medium slds-p-vertical_xx-small">
+            <!-- Icon and Title -->
+            <div class="slds-grid slds-grid_align-start">
+                <div style="display: inline-block;">
+                    <lightning-icon icon-name="standard:drafts" alternative-text="Drafts Icon" size="small"></lightning-icon>
+                </div>
+                <h2 class="slds-text-heading_small slds-m-left_small">Opportunity Versions</h2>
+            </div>
+
+            <!-- Button Group -->
+            
+        </div>
+
+        <!-- Versions Table -->
+        <template if:true={isVersionsLoading}>
+            <lightning-spinner alternative-text="Loading Versions..."></lightning-spinner>
+        </template>
+            <div class="slds-p-around_medium">
+                <lightning-datatable
+                    key-field="Id"
+                    data={versions}
+                    columns={versionColumns}
+                    max-row-selection="1"
+                    selected-rows={selectedRows}
+                    onrowselection={handleVersionRowSelection}
+                ></lightning-datatable>
+            </div>
+
+        <!-- Version Line Items Table -->
+        <template if:true={isVersionLineItemsLoading}>
+            <lightning-spinner alternative-text="Loading Version Line Items..."></lightning-spinner>
+        </template>
+                <div class="slds-p-around_medium">
+                    <lightning-datatable
+                        key-field="Id"
+                        data={versionLineItems}
+                        columns={versionLineItemColumns}
+                        hide-checkbox-column
+                    ></lightning-datatable>
+                </div>
+    </lightning-card>
+</template>
