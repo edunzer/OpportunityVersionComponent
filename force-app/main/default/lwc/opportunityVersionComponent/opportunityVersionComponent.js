@@ -171,34 +171,32 @@ export default class OpportunityVersionComponent extends LightningElement {
 
     getRowActions(row, doneCallback) {
         const actions = [];
-
-        if (row.Status__c === 'Draft') {
+        if (row.Status__c === 'Draft' && !row.Syncing__c) {
             actions.push({
-                label: 'Approve',
-                name: 'approve',
-                iconName: 'utility:check',
+                label: 'Approve',name: 'approve',iconName: 'utility:check',
+            },
+            {
+                label: 'Edit',name: 'edit',iconName: 'utility:edit',
+            },
+            {
+                label: 'Delete',name: 'delete',iconName: 'utility:delete',
             });
         }
-
-        if (!row.Syncing__c) {
-            actions.push(
-                {
-                    label: 'Edit',
-                    name: 'edit',
-                    iconName: 'utility:edit',
-                },
-                {
-                    label: 'Delete',
-                    name: 'delete',
-                    iconName: 'utility:delete',
-                }
-            );
+        if (row.Status__c === 'Obsolete' && !row.Syncing__c) {
+            actions.push({
+                label: 'Delete',name: 'delete',iconName: 'utility:delete',
+            });
         }
-
+        if (row.Status__c !== 'Draft' && row.Syncing__c) {
+            actions.push({
+                label: 'No Actions',name: 'no_actions',iconName: 'utility:ban', 
+            });
+        }
+    
         setTimeout(() => {
             doneCallback(actions);
         }, 200); // Simulate server-side processing
-    }
+    }    
 
     approveVersion(row) {
         console.log('Approving version:', row);
