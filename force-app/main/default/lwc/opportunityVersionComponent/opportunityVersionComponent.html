@@ -20,9 +20,15 @@
                         title="Add" 
                         onclick={openVersionModal}>
                     </lightning-button-icon>
+                    <lightning-button-icon 
+                        icon-name="utility:refresh"  
+                        variant="border-filled" 
+                        alternative-text="Refresh" 
+                        title="Refresh" 
+                        onclick={fetchRelatedVersions}>
+                    </lightning-button-icon>
                 </lightning-button-group>
             </div>
-            
         </div>
 
         <!-- Versions Table -->
