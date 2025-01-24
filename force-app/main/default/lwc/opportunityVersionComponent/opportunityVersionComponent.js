@@ -25,42 +25,27 @@ export default class OpportunityVersionComponent extends LightningElement {
     @track selectedRows = [];
 
     versionColumns = [
-        { label: 'Name', fieldName: 'Name', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Status', fieldName: 'Status__c', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Total Price', fieldName: 'Total_Price__c', type: 'currency', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Total Hours', fieldName: 'Total_Hours__c', type: 'number', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Total Cost', fieldName: 'Total_Cost__c', type: 'currency', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Syncing', fieldName: 'Syncing__c', type: 'boolean', 
-            cellAttributes: { alignment: 'left' } },
+        { label: 'Name', fieldName: 'Name', cellAttributes: { alignment: 'left' } },
+        { label: 'Status', fieldName: 'Status__c', cellAttributes: { alignment: 'left' } },
+        { label: 'Total Price', fieldName: 'Total_Price__c', type: 'currency', cellAttributes: { alignment: 'left' } },
+        { label: 'Total Hours', fieldName: 'Total_Hours__c', type: 'number', cellAttributes: { alignment: 'left' } },
+        { label: 'Total Cost', fieldName: 'Total_Cost__c', type: 'currency', cellAttributes: { alignment: 'left' } },
+        { label: 'Syncing', fieldName: 'Syncing__c', type: 'boolean', cellAttributes: { alignment: 'left' } },
         {
             type: 'action',
             typeAttributes: {
-                rowActions: [
-                    { label: 'Approve', name: 'approve' },
-                    { label: 'Edit', name: 'edit' },
-                    { label: 'Delete', name: 'delete' },
-                ],
+                rowActions: this.getRowActions.bind(this), // Bind dynamic row actions
             },
-            cellAttributes: { alignment: 'left' }
+            cellAttributes: { alignment: 'left' },
         },
     ];
 
     versionLineItemColumns = [
-        { label: 'Product Name', fieldName: 'Team_Name__c', type: 'text', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Price', fieldName: 'Price__c', type: 'currency', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Hours', fieldName: 'Hours__c', type: 'number', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Cost', fieldName: 'Cost__c', type: 'currency', 
-            cellAttributes: { alignment: 'left' } },
-        { label: 'Pricing Complete', fieldName: 'Pricing_Complete__c', type: 'boolean', 
-                    cellAttributes: { alignment: 'left' } },
+        { label: 'Product Name', fieldName: 'Team_Name__c', type: 'text', cellAttributes: { alignment: 'left' } },
+        { label: 'Price', fieldName: 'Price__c', type: 'currency', cellAttributes: { alignment: 'left' } },
+        { label: 'Hours', fieldName: 'Hours__c', type: 'number', cellAttributes: { alignment: 'left' } },
+        { label: 'Cost', fieldName: 'Cost__c', type: 'currency', cellAttributes: { alignment: 'left' } },
+        { label: 'Pricing Complete', fieldName: 'Pricing_Complete__c', type: 'boolean', cellAttributes: { alignment: 'left' } },
     ];
 
     @wire(MessageContext) messageContext;
@@ -183,6 +168,35 @@ export default class OpportunityVersionComponent extends LightningElement {
                 console.error('Unknown action:', actionName);
         }
     }
+
+    getRowActions(row, doneCallback) {
+        const actions = [];
+        if (row.Status__c === 'Draft' && !row.Syncing__c) {
+            actions.push({
+                label: 'Approve',name: 'approve',iconName: 'utility:check',
+            },
+            {
+                label: 'Edit',name: 'edit',iconName: 'utility:edit',
+            },
+            {
+                label: 'Delete',name: 'delete',iconName: 'utility:delete',
+            });
+        }
+        if (row.Status__c === 'Obsolete' && !row.Syncing__c) {
+            actions.push({
+                label: 'Delete',name: 'delete',iconName: 'utility:delete',
+            });
+        }
+        if (row.Status__c !== 'Draft' && row.Syncing__c) {
+            actions.push({
+                label: 'No Actions',name: 'no_actions',iconName: 'utility:ban', 
+            });
+        }
+    
+        setTimeout(() => {
+            doneCallback(actions);
+        }, 200); // Simulate server-side processing
+    }    
 
     approveVersion(row) {
         console.log('Approving version:', row);
