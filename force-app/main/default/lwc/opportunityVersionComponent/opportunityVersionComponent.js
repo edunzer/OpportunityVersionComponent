@@ -258,12 +258,6 @@ export default class OpportunityVersionComponent extends LightningElement {
                 label: 'Delete',name: 'delete',iconName: 'utility:delete',
             });
         }
-        if (row.Status__c !== 'Draft' && row.Syncing__c) {
-            actions.push({
-                label: 'No Actions',name: 'no_actions',iconName: 'utility:ban', 
-            });
-        }
-    
         setTimeout(() => {
             doneCallback(actions);
         }, 200); // Simulate server-side processing
