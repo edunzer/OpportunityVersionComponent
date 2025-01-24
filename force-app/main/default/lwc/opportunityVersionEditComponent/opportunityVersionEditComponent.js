@@ -42,7 +42,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
             .then((result) => {
                 this.products = result.map((product) => ({
                     label: product.Product2.Name,
-                    value: product.Team__c, // Used for UI display and backend
+                    value: product.Product2Id, // Used for UI display and backend
                     pricebookEntryId: product.Id, // Used for Version Line Item creation
                 }));
                 console.log('Loaded products:', this.products);
@@ -60,7 +60,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
                 // Deep copy the original items to ensure immutability and apply matchingProduct logic
                 this.originalLineItems = result.map((item) => {
                     const matchingProduct = this.products.find(
-                        (product) => product.label === item.Team__c
+                        (product) => product.label === item.Team_Name__c
                     );
     
                     if (!matchingProduct) {
