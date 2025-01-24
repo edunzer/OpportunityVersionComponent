@@ -25,7 +25,7 @@ export default class OpportunityVersionComponent extends LightningElement {
     @track selectedRows = [];
 
     versionColumns = [
-        { label: 'Name', fieldName: 'Name', cellAttributes: { alignment: 'left' } },
+        { label: 'Name', fieldName: 'Version_Name__c', cellAttributes: { alignment: 'left' } },
         { label: 'Status', fieldName: 'Status__c', cellAttributes: { alignment: 'left' } },
         { label: 'Total Price', fieldName: 'Total_Price__c', type: 'currency', cellAttributes: { alignment: 'left' } },
         { label: 'Total Hours', fieldName: 'Total_Hours__c', type: 'number', cellAttributes: { alignment: 'left' } },
