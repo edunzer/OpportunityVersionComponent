@@ -152,9 +152,11 @@ export default class OpportunityVersionComponent extends LightningElement {
     handleRowAction(event) {
         const actionName = event.detail.action.name;
         const row = event.detail.row;
-        console.log('Row action triggered:', actionName, 'Row:', row);
-
+    
         switch (actionName) {
+            case 'copy':
+                this.copyToClipboard(row.Id); // Call the copyToClipboard method with the record ID
+                break;
             case 'approve':
                 this.approveVersion(row);
                 break;
@@ -169,8 +171,77 @@ export default class OpportunityVersionComponent extends LightningElement {
         }
     }
 
+    copyToClipboard(value) {
+        if (!value) {
+            console.error('No value to copy to clipboard');
+            const toastEvent = new ShowToastEvent({
+                title: 'Error',
+                message: 'No value to copy to clipboard.',
+                variant: 'error',
+            });
+            this.dispatchEvent(toastEvent);
+            return;
+        }
+    
+        // Check if the Clipboard API is supported
+        if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+            navigator.clipboard.writeText(value)
+                .then(() => {
+                    const toastEvent = new ShowToastEvent({
+                        title: 'Copied to Clipboard',
+                        message: `Version ID "${value}" has been copied to clipboard.`,
+                        variant: 'success',
+                    });
+                    this.dispatchEvent(toastEvent);
+                })
+                .catch((err) => {
+                    console.error('Failed to copy using Clipboard API: ', err);
+                    this.showFallbackCopyError();
+                });
+        } else {
+            // Fallback method: use a hidden input field
+            this.fallbackCopyToClipboard(value);
+        }
+    }
+    
+    fallbackCopyToClipboard(value) {
+        try {
+            const input = document.createElement('textarea');
+            input.value = value;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy'); // Legacy method
+            document.body.removeChild(input);
+    
+            const toastEvent = new ShowToastEvent({
+                title: 'Copied to Clipboard',
+                message: `Version ID "${value}" has been copied to clipboard.`,
+                variant: 'success',
+            });
+            this.dispatchEvent(toastEvent);
+        } catch (err) {
+            console.error('Fallback copy failed: ', err);
+            this.showFallbackCopyError();
+        }
+    }
+    
+    showFallbackCopyError() {
+        const toastEvent = new ShowToastEvent({
+            title: 'Error',
+            message: 'Failed to copy Version ID to clipboard.',
+            variant: 'error',
+        });
+        this.dispatchEvent(toastEvent);
+    }
+
     getRowActions(row, doneCallback) {
-        const actions = [];
+        const actions = [
+            {
+                label: 'Copy ID to Clipboard',
+                name: 'copy',
+                iconName: 'utility:copy',
+            },
+        ];
         if (row.Status__c === 'Draft' && !row.Syncing__c) {
             actions.push({
                 label: 'Approve',name: 'approve',iconName: 'utility:check',
