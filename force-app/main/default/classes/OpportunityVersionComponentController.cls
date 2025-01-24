@@ -135,8 +135,8 @@ public with sharing class OpportunityVersionComponentController {
         List<Opportunity_Version_Line_Item__c> recordsToInsert = new List<Opportunity_Version_Line_Item__c>();
     
         for (Map<String, Object> item : newLineItems) {
-            if (item.get('PricebookEntryId') == null) {
-                throw new AuraHandledException('PricebookEntryId is required for new line items.');
+            if (item.get('Team__c') == null) {
+                throw new AuraHandledException('value is required for new line items.');
             }
             if (item.get('VersionId') == null) {
                 throw new AuraHandledException('VersionId is required for new line items.');
@@ -148,7 +148,7 @@ public with sharing class OpportunityVersionComponentController {
     
             recordsToInsert.add(new Opportunity_Version_Line_Item__c(
                 Opportunity_Version__c = (Id)item.get('VersionId'),
-                Team__c = (Id)item.get('PricebookEntryId'),
+                Team__c = (Id)item.get('Team__c'),
                 Hours__c = hours,
                 Price__c = price,
                 Cost__c = cost,
@@ -185,6 +185,7 @@ public with sharing class OpportunityVersionComponentController {
 
             recordsToUpdate.add(new Opportunity_Version_Line_Item__c(
                 Id = (Id)item.get('Id'),
+                Team__c = (Id)item.get('Team__c'),
                 Hours__c = hours,
                 Price__c = unitPrice,
                 Cost__c = cost

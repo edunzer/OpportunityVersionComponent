@@ -43,7 +43,6 @@ export default class OpportunityVersionEditComponent extends LightningModal {
                 this.products = result.map((product) => ({
                     label: product.Product2.Name,
                     value: product.Product2Id, // Used for UI display and backend
-                    pricebookEntryId: product.Id, // Used for Version Line Item creation
                 }));
                 console.log('Loaded products:', this.products);
             })
@@ -72,7 +71,6 @@ export default class OpportunityVersionEditComponent extends LightningModal {
                             indexId: item.Id, // Use the existing Salesforce ID as the indexId
                             id: item.Id,
                             Team__c: matchingProduct ? matchingProduct.value : '',
-                            PricebookEntryId: matchingProduct ? matchingProduct.pricebookEntryId : item.PricebookEntryId,
                             ProductName: item.Team__c || '',
                             Hours__c: item.Hours__c || 0,
                             Price__c: item.Price__c || 0,
@@ -96,7 +94,6 @@ export default class OpportunityVersionEditComponent extends LightningModal {
             indexId: `${Date.now()}-${Math.random()}`, // Generate a unique placeholder ID
             id: null, // New items do not have an existing ID
             Team__c: '',
-            PricebookEntryId: '',
             ProductName: '',
             Hours__c: 0,
             Price__c: 0,
@@ -124,11 +121,11 @@ export default class OpportunityVersionEditComponent extends LightningModal {
             // Update Team__c
             lineItem.Team__c = value;
     
-            // Find the matching product and update PricebookEntryId
+            // Find the matching product
             const matchingProduct = this.products.find((product) => product.value === value);
             if (matchingProduct) {
-                lineItem.PricebookEntryId = matchingProduct.pricebookEntryId;
-                console.log('Updated PricebookEntryId:', lineItem.PricebookEntryId);
+                lineItem.Team__c = matchingProduct.value;
+                console.log('Updated Team:', lineItem.Team__c);
             } else {
                 console.warn('No matching product found for Team__c:', value);
             }
@@ -169,7 +166,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
     
             // Check if any field has changed
             const isUpdated =
-                original.PricebookEntryId !== item.PricebookEntryId ||
+                original.Team__c !== item.Team__c ||
                 original.Hours__c !== item.Hours__c ||
                 original.Price__c !== item.Price__c ||
                 original.Cost__c !== item.Cost__c;
@@ -199,7 +196,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
         // Map items for Apex
         const mappedNewLineItems = newLineItems.map((item) => ({
             VersionId: this.versionId,
-            PricebookEntryId: item.PricebookEntryId,
+            Team__c: item.Team__c,
             Hours__c: item.Hours__c,
             Price__c: item.Price__c,
             Cost__c: item.Cost__c,
@@ -207,7 +204,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
     
         const mappedUpdatedLineItems = updatedLineItems.map((item) => ({
             Id: item.id,
-            PricebookEntryId: item.PricebookEntryId,
+            Team__c: item.Team__c,
             Hours__c: item.Hours__c,
             Price__c: item.Price__c,
             Cost__c: item.Cost__c,

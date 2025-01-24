@@ -60,7 +60,6 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
                 this.products = result.map((product) => ({
                     label: product.Product2.Name,
                     value: product.Product2Id, // Used for UI display and backend
-                    pricebookEntryId: product.Id, // Used for Version Line Item creation
                 }));
                 console.log('Loaded products:', this.products);
             })
@@ -91,7 +90,6 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
                     return {
                         id: item.Id,
                         Team__c: matchingProduct ? matchingProduct.value : '', // Use Team__c for UI
-                        PricebookEntryId: matchingProduct ? matchingProduct.pricebookEntryId : '', // Use PricebookEntryId for backend
                         ProductName: item.Team__c || '', // Use Name for UI display
                         Hours__c: item.Hours__c || 0,
                         Price__c: item.Price__c || 0,
@@ -148,9 +146,8 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
             const matchingProduct = this.products.find(
                 (product) => product.value === selectedValue
             );
-            // Update Team__c and PricebookEntryId
+            // Update Team__c
             this.versionLineItems[lineItemIndex].Team__c = matchingProduct ? matchingProduct.value : '';
-            this.versionLineItems[lineItemIndex].PricebookEntryId = matchingProduct ? matchingProduct.pricebookEntryId : '';
         } else if (['Price__c', 'Cost__c', 'Hours__c'].includes(field)) {
             this.versionLineItems[lineItemIndex][field] = parseFloat(selectedValue) || 0;
         } else {
@@ -166,29 +163,15 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
         if (this.versionLineItems.length === 0) {
             this.addVersionLineItem(); // Add a new blank line item
         }
-    }    
-
-    validateLineItems() {
-        for (const item of this.versionLineItems) {
-            if (!item.Team__c || !item.ServiceDate || item.Price__c <= 0 || item.Cost__c <= 0) {
-                this.setErrorMessage('All line items must have valid values.');
-                return false;
-            }
-        }
-        this.clearErrorMessages();
-        return true;
-    }    
+    }       
 
     async handleSave() {
-        if (!this.validateLineItems()) {
-            return; // Stop the save process if validation fails
-        }
         console.log('Starting save operation for Version and Line Items');
         this.isLoading = true;
 
         try {
             const newLineItems = this.versionLineItems.map((item) => ({
-                Team__c: item.PricebookEntryId,
+                Team__c: item.Team__c,
                 Hours__c: item.Hours__c,
                 Price__c: item.Price__c,
                 Cost__c: item.Cost__c,
