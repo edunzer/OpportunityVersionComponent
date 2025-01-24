@@ -45,10 +45,12 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
                 const count = versions.length;
                 this.versionName = `Version-${count + 1}`;
                 console.log('Generated version name:', this.versionName);
+                return versionName; // Return the generated name
             })
             .catch((error) => {
                 console.error('Error generating version name:', error);
                 this.setErrorMessage('Failed to generate Version Name.');
+                throw error; // Ensure the error propagates
             });
     }
 

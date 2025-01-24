@@ -3,7 +3,7 @@ public with sharing class OpportunityVersionComponentController {
     @AuraEnabled(cacheable=false)
     public static List<Opportunity_Version__c> getRelatedOpportunityVersions(Id opportunityId) {
         return [
-            SELECT Id, Name, Syncing__c, Status__c, Total_Price__c, Total_Hours__c, Total_Cost__c, 	Number_of_Opportunity_Version_Line_Items__c, Opportunity__c
+            SELECT Id, Name, Version_Name__c, Syncing__c, Status__c, Total_Price__c, Total_Hours__c, Total_Cost__c, 	Number_of_Opportunity_Version_Line_Items__c, Opportunity__c
             FROM Opportunity_Version__c
             WHERE Opportunity__c = :opportunityId
             ORDER BY CreatedDate DESC
