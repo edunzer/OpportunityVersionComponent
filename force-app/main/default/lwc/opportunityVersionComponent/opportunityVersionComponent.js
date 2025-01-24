@@ -1,11 +1,18 @@
 import { LightningElement, api, wire, track } from 'lwc';
 
+import OpportunityVersionCreationComponent from 'c/OpportunityVersionCreationComponent';
+import OpportunityVersionEditComponent from 'c/OpportunityVersionEditComponent';
+
+import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+
 import { subscribe, unsubscribe, MessageContext } from 'lightning/messageService';
 import OpportunityVersionRefreshChannel from '@salesforce/messageChannel/OpportunityVersionRefreshChannel__c';
 import OpportunityVersionLineItemRefreshChannel from '@salesforce/messageChannel/OpportunityVersionLineItemRefreshChannel__c';
 
 import getRelatedOpportunityVersions from '@salesforce/apex/OpportunityVersionComponentController.getRelatedOpportunityVersions';
 import getOpportunityVersionLineItems from '@salesforce/apex/OpportunityVersionComponentController.getOpportunityVersionLineItems';
+import updateVersionStatus from '@salesforce/apex/OpportunityVersionComponentController.updateVersionStatus';
+import deleteVersion from '@salesforce/apex/OpportunityVersionComponentController.deleteVersion';
 
 export default class OpportunityVersionComponent extends LightningElement {
 
@@ -30,6 +37,17 @@ export default class OpportunityVersionComponent extends LightningElement {
             cellAttributes: { alignment: 'left' } },
         { label: 'Syncing', fieldName: 'Syncing__c', type: 'boolean', 
             cellAttributes: { alignment: 'left' } },
+        {
+            type: 'action',
+            typeAttributes: {
+                rowActions: [
+                    { label: 'Sync', name: 'sync' },
+                    { label: 'Edit', name: 'edit' },
+                    { label: 'Delete', name: 'delete' },
+                ],
+            },
+            cellAttributes: { alignment: 'left' }
+        },
     ];
 
     versionLineItemColumns = [
@@ -41,6 +59,8 @@ export default class OpportunityVersionComponent extends LightningElement {
             cellAttributes: { alignment: 'left' } },
         { label: 'Cost', fieldName: 'Cost__c', type: 'currency', 
             cellAttributes: { alignment: 'left' } },
+        { label: 'Pricing Complete', fieldName: 'Pricing_Complete__c', type: 'boolean', 
+                    cellAttributes: { alignment: 'left' } },
     ];
 
     @wire(MessageContext) messageContext;
@@ -143,6 +163,151 @@ export default class OpportunityVersionComponent extends LightningElement {
             this.fetchVersionLineItems();
         }
     }
+
+    handleRowAction(event) {
+        const actionName = event.detail.action.name;
+        const row = event.detail.row;
+        console.log('Row action triggered:', actionName, 'Row:', row);
+
+        switch (actionName) {
+            case 'sync':
+                this.syncVersion(row);
+                break;
+            case 'edit':
+                this.editVersion(row);
+                break;
+            case 'delete':
+                this.deleteVersion(row);
+                break;
+            default:
+                console.error('Unknown action:', actionName);
+        }
+    }
+
+    syncVersion(row) {
+        console.log('Syncing version:', row);
+        const confirmSync = confirm('Are you sure you want to sync this version?');
+        if (!confirmSync) {
+            console.log('Sync cancelled by user');
+            return;
+        }
+
+        this.isVersionsLoading = true;
+
+        updateVersionStatus({ versionId: row.Id, status: 'Approved' })
+            .then(() => {
+                console.log('Successfully synced version:', row);
+                const toastEvent = new ShowToastEvent({
+                    title: 'Success',
+                    message: `Version ${row.Name} has been synced successfully.`,
+                    variant: 'success',
+                });
+                this.dispatchEvent(toastEvent);
+                this.fetchRelatedVersions();
+            })
+            .catch((error) => {
+                console.error('Error syncing version:', error);
+                const toastEvent = new ShowToastEvent({
+                    title: 'Error',
+                    message: 'Failed to sync the version.',
+                    variant: 'error',
+                });
+                this.dispatchEvent(toastEvent);
+            })
+            .finally(() => {
+                this.isVersionsLoading = false;
+                console.log('Sync operation completed');
+            });
+    }
+
+    editVersion(row) {
+        console.log('Editing version:', row);
+        if (row.Syncing__c) {
+            console.warn('Cannot edit a syncing version:', row);
+            const toastEvent = new ShowToastEvent({
+                title: 'Error',
+                message: 'Cannot edit a syncing version. Please sync another version before editing this one.',
+                variant: 'error',
+            });
+            this.dispatchEvent(toastEvent);
+            return;
+        }
+        if (row.Status__c === 'Obsolete') {
+            const toastEvent = new ShowToastEvent({
+                title: 'Error',
+                message: 'Cannot edit a version with status "Obsolete". ',
+                variant: 'error',
+            });
+            this.dispatchEvent(toastEvent);
+            return;
+        }
+        OpportunityVersionEditComponent.open({
+            size: 'medium',
+            description: 'Edit Version Line Items',
+            versionId: row.Id,
+            opportunityId: this.recordId,
+        }).then((result) => {
+            if (result === 'save') {
+                console.log('Edit operation saved for Version:', row);
+                this.fetchRelatedVersions();
+            }
+        });
+    }
+
+    deleteVersion(row) {
+        console.log('Deleting version:', row);
+        if (row.Syncing__c) {
+            console.warn('Cannot delete a syncing version:', row);
+            const toastEvent = new ShowToastEvent({
+                title: 'Error',
+                message: 'Cannot delete a syncing version. Please sync another version before deleting this one.',
+                variant: 'error',
+            });
+            this.dispatchEvent(toastEvent);
+            return;
+        }
+
+        const confirmDelete = confirm('Are you sure you want to delete this version?');
+        if (!confirmDelete) {
+            console.log('Delete operation cancelled by user');
+            return;
+        }
+
+        deleteVersion({ versionId: row.Id })
+            .then(() => {
+                console.log('Successfully deleted version:', row);
+                const toastEvent = new ShowToastEvent({
+                    title: 'Success',
+                    message: `Version ${row.Name} has been deleted successfully.`,
+                    variant: 'success',
+                });
+                this.dispatchEvent(toastEvent);
+                this.fetchRelatedVersions();
+            })
+            .catch((error) => {
+                console.error('Error deleting version:', error);
+                const toastEvent = new ShowToastEvent({
+                    title: 'Error',
+                    message: 'Failed to delete the version.',
+                    variant: 'error',
+                });
+                this.dispatchEvent(toastEvent);
+            });
+    }  
+    
+    async openVersionModal() {
+        console.log('Opening Version Creation Modal');
+        const result = await OpportunityVersionCreationComponent.open({
+            size: 'medium',
+            description: 'Create a new version and associated line items',
+            opportunityId: this.recordId,
+        });
+
+        if (result === 'save') {
+            console.log('Version creation completed');
+            this.fetchRelatedVersions();
+        }
+    }    
 
     refreshComponent() {
         console.log('Refreshing Version Component');

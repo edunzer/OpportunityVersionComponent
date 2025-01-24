@@ -1,0 +1,243 @@
+import LightningModal from 'lightning/modal';
+import { api, wire } from 'lwc';
+
+import { publish, MessageContext } from 'lightning/messageService';
+import OpportunityVersionRefreshChannel from '@salesforce/messageChannel/OpportunityVersionRefreshChannel__c';
+
+import getRelatedOpportunityVersions from '@salesforce/apex/OpportunityVersionComponentController.getRelatedOpportunityVersions';
+import getActiveProductsFromPriceBook from '@salesforce/apex/OpportunityVersionComponentController.getActiveProductsFromPriceBook';
+import getOpportunityVersionLineItems from '@salesforce/apex/OpportunityVersionComponentController.getOpportunityVersionLineItems';
+
+import createVersion from '@salesforce/apex/OpportunityVersionComponentController.createVersion';
+import manageVersionLineItems from '@salesforce/apex/OpportunityVersionComponentController.manageVersionLineItems';
+
+export default class OpportunityVersionCreationComponent extends LightningModal {
+    @api opportunityId; // Opportunity ID passed from the parent component
+    versionName = '';
+    versionLineItems = [];
+    products = [];
+    isLoading = false;
+    errorMessages = null; // To hold error messages for inline display
+
+    @wire(MessageContext) messageContext; // Wire MessageContext for LMS
+
+    connectedCallback() {
+        console.log('Initializing Version Creation Component');
+        this.isLoading = true;
+        this.generateVersionName()
+            .then(() => this.loadProducts())
+            .then(() => this.loadSyncedVersionLineItems())
+            .catch((error) => {
+                console.error('Error during initialization:', error);
+                this.setErrorMessage('Failed to initialize the version modal.');
+            })
+            .finally(() => {
+                this.isLoading = false;
+                console.log('Initialization complete');
+            });
+    }
+
+    // Generate Version Name
+    generateVersionName() {
+        console.log('Generating version name');
+        return getRelatedOpportunityVersions({ opportunityId: this.opportunityId })
+            .then((versions) => {
+                const count = versions.length;
+                this.versionName = `Version-${count + 1}`;
+                console.log('Generated version name:', this.versionName);
+            })
+            .catch((error) => {
+                console.error('Error generating version name:', error);
+                this.setErrorMessage('Failed to generate Version Name.');
+            });
+    }
+
+    // Load Products for Combobox
+    loadProducts() {
+        console.log('Loading products from price book');
+        return getActiveProductsFromPriceBook({ opportunityId: this.opportunityId })
+            .then((result) => {
+                this.products = result.map((product) => ({
+                    label: product.Product2.Name,
+                    value: product.Team__c, // Used for UI display and backend
+                    pricebookEntryId: product.Id, // Used for Version Line Item creation
+                }));
+                console.log('Loaded products:', this.products);
+            })
+            .catch((error) => {
+                console.error('Error fetching products:', error);
+                this.setErrorMessage('Failed to load products.');
+            });
+    }
+
+    loadSyncedVersionLineItems() {
+        console.log('Loading synced version line items');
+        return getRelatedOpportunityVersions({ opportunityId: this.opportunityId })
+            .then((versions) => {
+                const syncedVersion = versions.find((version) => version.Syncing__c);
+                if (syncedVersion) {
+                    console.log('Found synced version:', syncedVersion);
+                    return getOpportunityVersionLineItems({ versionId: syncedVersion.Id });
+                } else {
+                    console.log('No synced version found');
+                    return [];
+                }
+            })
+            .then((lineItems) => {
+                this.versionLineItems = lineItems.map((item) => {
+                    const matchingProduct = this.products.find(
+                        (product) => product.label === item.Pricing_Team_Name__c // Match by product name
+                    );
+                    return {
+                        id: item.Id,
+                        Team__c: matchingProduct ? matchingProduct.value : '', // Use Team__c for UI
+                        PricebookEntryId: matchingProduct ? matchingProduct.pricebookEntryId : '', // Use PricebookEntryId for backend
+                        ProductName: item.Team__c || '', // Use Name for UI display
+                        Hours__c: item.Hours__c || 0,
+                        Price__c: item.Price__c || 0,
+                        Cost__c: item.Cost__c || 0,
+                        Pricing_Complete__c: item.Pricing_Complete__c || false,
+                    };
+                });
+                console.log('Loaded synced version line items:', this.versionLineItems);
+                if (this.versionLineItems.length === 0) {
+                    this.addVersionLineItem();
+                }
+            })
+            .catch((error) => {
+                console.error('Error fetching synced version line items:', error);
+                this.setErrorMessage('Failed to load synced version line items.');
+                this.addVersionLineItem(); // Fallback
+            });
+    }
+
+    handleProductChange(event) {
+        const { index } = event.target.dataset;
+        console.log('Product changed at index:', index, 'New Value:', event.target.value);
+        this.versionLineItems[index].Team__c = event.target.value;
+    }
+
+    addVersionLineItem() {
+        this.versionLineItems = [
+            ...this.versionLineItems,
+            {
+                id: `${Date.now()}-${Math.random()}`, // Generate a more unique id
+                Team__c: '',
+                ProductName: '',
+                Hours__c: 0,
+                Price__c: 0,
+                Cost__c: 0,
+                Pricing_Complete__c: false,
+            },
+        ];
+    }
+
+    handleLineItemChange(event) {
+        const { index, field } = event.target.dataset;
+        const selectedValue = event.target.value;
+        const lineItemIndex = this.versionLineItems.findIndex((item) => item.id == index);
+
+        if (lineItemIndex === -1) {
+            console.error('Invalid index. Line item not found.');
+            return;
+        }
+
+        console.log('Line item change at index:', index, 'Field:', field, 'New Value:', selectedValue);
+        if (field === 'Team__c') {
+            // Find the matching product using the selected Team__c
+            const matchingProduct = this.products.find(
+                (product) => product.value === selectedValue
+            );
+            // Update Team__c and PricebookEntryId
+            this.versionLineItems[lineItemIndex].Team__c = matchingProduct ? matchingProduct.value : '';
+            this.versionLineItems[lineItemIndex].PricebookEntryId = matchingProduct ? matchingProduct.pricebookEntryId : '';
+        } else if (['Price__c', 'Cost__c', 'Hours__c'].includes(field)) {
+            this.versionLineItems[lineItemIndex][field] = parseFloat(selectedValue) || 0;
+        } else {
+            this.versionLineItems[lineItemIndex][field] = selectedValue;
+        }
+    }
+      
+    handleDeleteLineItem(event) {
+        const lineItemId = event.target.dataset.index; // Get the id of the item to delete
+        // Filter out the deleted item
+        this.versionLineItems = this.versionLineItems.filter((item) => item.id !== lineItemId);
+        // Check if versionLineItems is empty
+        if (this.versionLineItems.length === 0) {
+            this.addVersionLineItem(); // Add a new blank line item
+        }
+    }    
+
+    validateLineItems() {
+        for (const item of this.versionLineItems) {
+            if (!item.Team__c || !item.ServiceDate || item.Price__c <= 0 || item.Cost__c <= 0) {
+                this.setErrorMessage('All line items must have valid values.');
+                return false;
+            }
+        }
+        this.clearErrorMessages();
+        return true;
+    }    
+
+    async handleSave() {
+        if (!this.validateLineItems()) {
+            return; // Stop the save process if validation fails
+        }
+        console.log('Starting save operation for Version and Line Items');
+        this.isLoading = true;
+
+        try {
+            const newLineItems = this.versionLineItems.map((item) => ({
+                Team__c: item.PricebookEntryId,
+                Hours__c: item.Hours__c,
+                Price__c: item.Price__c,
+                Cost__c: item.Cost__c,
+            }));
+
+            console.log('Prepared new line items for save:', newLineItems);
+
+            const versionId = await createVersion({
+                opportunityId: this.opportunityId,
+                versionName: this.versionName,
+                newLineItems: [],
+            });
+
+            console.log('Created version with ID:', versionId);
+
+            await manageVersionLineItems({
+                newLineItems: newLineItems.map((item) => ({ ...item, VersionId: versionId })),
+                updatedLineItems: [],
+                deletedLineItemIds: [],
+            });
+
+            console.log('Successfully managed version line items');
+
+            publish(this.messageContext, OpportunityVersionRefreshChannel, { refresh: true });
+            console.log('Published Version Refresh Channel');
+
+            this.close('save');
+        } catch (error) {
+            console.error('Error saving version and line items:', error);
+            this.setErrorMessage('An error occurred while saving the version and line items.');
+        } finally {
+            this.isLoading = false;
+            console.log('Save operation completed');
+        }
+    }
+
+    handleCancel() {
+        console.log('Canceling operation');
+        this.close('cancel');
+    }
+
+    setErrorMessage(message) {
+        console.error('Error:', message);
+        this.errorMessages = [{ message }];
+    }
+
+    clearErrorMessages() {
+        console.log('Clearing error messages');
+        this.errorMessages = null;
+    }
+
+}

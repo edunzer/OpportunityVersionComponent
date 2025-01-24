@@ -11,6 +11,17 @@
             </div>
 
             <!-- Button Group -->
+            <div class="slds-grid slds-grid_align-end">
+                <lightning-button-group>
+                    <lightning-button-icon 
+                        icon-name="utility:add"  
+                        variant="border-filled" 
+                        alternative-text="Add" 
+                        title="Add" 
+                        onclick={openVersionModal}>
+                    </lightning-button-icon>
+                </lightning-button-group>
+            </div>
             
         </div>
 
@@ -26,6 +37,7 @@
                     max-row-selection="1"
                     selected-rows={selectedRows}
                     onrowselection={handleVersionRowSelection}
+                    onrowaction={handleRowAction}                    
                 ></lightning-datatable>
             </div>
 

@@ -1,0 +1,101 @@
+<template>
+    <lightning-modal-header label="Create Version"></lightning-modal-header>
+    <lightning-modal-body>
+        <!-- Inline Error Messages -->
+        <lightning-messages if:true={errorMessages}></lightning-messages>
+
+        <!-- Version Name -->
+        <div class="slds-m-bottom_medium">
+            <p><strong>Version Name:</strong> {versionName}</p>
+        </div>
+
+        <!-- Grouping for Column Headers and Line Items -->
+        <div class="slds-grid slds-wrap slds-m-bottom_medium slds-gutters">
+            <!-- Column Headers -->
+            <div class="slds-grid slds-col slds-size_1-of-1">
+                <div class="slds-col slds-size_3-of-12">Team</div>
+                <div class="slds-col slds-size_2-of-12">Hours</div>
+                <div class="slds-col slds-size_2-of-12">Price</div>
+                <div class="slds-col slds-size_2-of-12">Cost</div>
+            </div>
+
+            <!-- Line Items -->
+            <template for:each={versionLineItems} for:item="item">
+                <div key={item.id} class="slds-grid slds-col slds-size_1-of-1">
+                    <div class="slds-col slds-size_3-of-12">
+                        <lightning-combobox
+                            data-index={item.id}
+                            data-field="Team__c"
+                            value={item.Team__c}
+                            options={products}
+                            placeholder="Select Product"
+                            onchange={handleLineItemChange}
+                            >
+                        </lightning-combobox>
+                    </div>
+                    <div class="slds-col slds-size_2-of-12">
+                        <lightning-input
+                            data-index={item.id}
+                            data-field="Hours__c"
+                            type="number"
+                            value={item.Hours__c}
+                            onchange={handleLineItemChange}
+                            >
+                        </lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_2-of-12">
+                        <lightning-input
+                            data-index={item.id}
+                            data-field="Price__c"
+                            type="number"
+                            step="0.01"
+                            value={item.Price__c}
+                            onchange={handleLineItemChange}
+                            >
+                        </lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_2-of-12">
+                        <lightning-input
+                            data-index={item.id}
+                            data-field="Cost__c"
+                            type="number"
+                            step="0.01"
+                            value={item.Cost__c}
+                            onchange={handleLineItemChange}
+                            >
+                        </lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_1-of-12">
+                        <lightning-button-icon
+                            icon-name="utility:delete"
+                            variant="border-filled"
+                            alternative-text="Delete"
+                            title="Delete"
+                            style="display: flex; position: relative;align-items: flex-end;height: 95%;"
+                            data-index={item.id}
+                            onclick={handleDeleteLineItem}>
+                        </lightning-button-icon>
+                    </div>
+                    
+                </div>
+            </template>
+        </div>
+
+        <!-- Add Line Item Button -->
+        <div>
+            <lightning-button
+                label="Add Line Item"
+                variant="neutral"
+                class="slds-m-top_medium"
+                onclick={addVersionLineItem}>
+            </lightning-button>
+        </div>
+    </lightning-modal-body>
+
+    <lightning-modal-footer>
+        <lightning-button-group>
+            <lightning-button label="Save" onclick={handleSave} variant="brand"></lightning-button>
+            <lightning-button label="Cancel" onclick={handleCancel} variant="neutral"></lightning-button>
+        </lightning-button-group>
+    </lightning-modal-footer>
+</template>
