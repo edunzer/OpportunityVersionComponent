@@ -41,7 +41,7 @@ export default class OpportunityVersionComponent extends LightningElement {
             type: 'action',
             typeAttributes: {
                 rowActions: [
-                    { label: 'Sync', name: 'sync' },
+                    { label: 'Approve', name: 'approve' },
                     { label: 'Edit', name: 'edit' },
                     { label: 'Delete', name: 'delete' },
                 ],
@@ -170,8 +170,8 @@ export default class OpportunityVersionComponent extends LightningElement {
         console.log('Row action triggered:', actionName, 'Row:', row);
 
         switch (actionName) {
-            case 'sync':
-                this.syncVersion(row);
+            case 'approve':
+                this.approveVersion(row);
                 break;
             case 'edit':
                 this.editVersion(row);
@@ -184,11 +184,11 @@ export default class OpportunityVersionComponent extends LightningElement {
         }
     }
 
-    syncVersion(row) {
-        console.log('Syncing version:', row);
-        const confirmSync = confirm('Are you sure you want to sync this version?');
+    approveVersion(row) {
+        console.log('Approving version:', row);
+        const confirmSync = confirm('Are you sure you want to approve this version?');
         if (!confirmSync) {
-            console.log('Sync cancelled by user');
+            console.log('Approval cancelled by user');
             return;
         }
 
@@ -209,14 +209,14 @@ export default class OpportunityVersionComponent extends LightningElement {
                 console.error('Error syncing version:', error);
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
-                    message: 'Failed to sync the version.',
+                    message: 'Failed to approve the version.',
                     variant: 'error',
                 });
                 this.dispatchEvent(toastEvent);
             })
             .finally(() => {
                 this.isVersionsLoading = false;
-                console.log('Sync operation completed');
+                console.log('Approve operation completed');
             });
     }
 
