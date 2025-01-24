@@ -1,7 +1,7 @@
 import { LightningElement, api, wire, track } from 'lwc';
 
-import OpportunityVersionCreationComponent from 'c/OpportunityVersionCreationComponent';
-import OpportunityVersionEditComponent from 'c/OpportunityVersionEditComponent';
+import OpportunityVersionCreationComponent from 'c/opportunityVersionCreationComponent';
+import OpportunityVersionEditComponent from 'c/opportunityVersionEditComponent';
 
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 
