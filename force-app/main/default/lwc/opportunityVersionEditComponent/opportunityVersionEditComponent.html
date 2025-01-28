@@ -8,11 +8,11 @@
         <div class="slds-grid slds-wrap slds-m-bottom_medium slds-gutters">
             <!-- Column Headers -->
             <div class="slds-grid slds-col slds-size_1-of-1">
-                <div class="slds-col slds-size_3-of-12">Product</div>
-                <div class="slds-col slds-size_2-of-12">Service Date</div>
+                <div class="slds-col slds-size_3-of-12">Team</div>
                 <div class="slds-col slds-size_2-of-12">Hours</div>
-                <div class="slds-col slds-size_2-of-12">Unit Price</div>
+                <div class="slds-col slds-size_2-of-12">Price</div>
                 <div class="slds-col slds-size_2-of-12">Cost</div>
+                <div class="slds-col slds-size_2-of-12">Remove</div>
             </div>
 
             <!-- Line Items -->
@@ -24,7 +24,7 @@
                             data-field="Team__c"
                             value={item.Team__c}
                             options={products}
-                            placeholder="Select Product"
+                            placeholder="Select Team"
                             onchange={handleLineItemChange}>
                         </lightning-combobox>
                     </div>
