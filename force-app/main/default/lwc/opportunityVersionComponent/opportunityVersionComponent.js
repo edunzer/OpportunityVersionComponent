@@ -41,7 +41,7 @@ export default class OpportunityVersionComponent extends LightningElement {
     ];
 
     versionLineItemColumns = [
-        { label: 'Product Name', fieldName: 'Team_Name__c', type: 'text', cellAttributes: { alignment: 'left' } },
+        { label: 'Team', fieldName: 'Team_Name__c', type: 'text', cellAttributes: { alignment: 'left' } },
         { label: 'Price', fieldName: 'Price__c', type: 'currency', cellAttributes: { alignment: 'left' } },
         { label: 'Hours', fieldName: 'Hours__c', type: 'number', cellAttributes: { alignment: 'left' } },
         { label: 'Cost', fieldName: 'Cost__c', type: 'currency', cellAttributes: { alignment: 'left' } },
