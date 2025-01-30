@@ -17,7 +17,7 @@
                 <div class="slds-col slds-size_2-of-12">Hours</div>
                 <div class="slds-col slds-size_2-of-12">Price</div>
                 <div class="slds-col slds-size_2-of-12">Cost</div>
-                <div class="slds-col slds-size_1-of-12">Pricing Complete</div>
+                <div class="slds-col slds-size_2-of-12">Pricing Complete</div>
                 <div class="slds-col slds-size_1-of-12">Remove</div>
             </div>
 
@@ -64,14 +64,14 @@
                             onchange={handleLineItemChange}
                         ></lightning-input>
                     </div>
-                    <div class="slds-col slds-size_1-of-12">
+                    <div class="slds-col slds-size_2-of-12">
                         <lightning-input
                             type="checkbox-button"
                             data-index={item.id}
                             data-field="Pricing_Complete__c"
                             checked={item.Pricing_Complete__c}
                             onchange={handleLineItemChange}
-                            style="display: flex; position: relative;align-items: flex-end;height: 95%;"
+                            style="display: flex; position: relative;align-items: flex-end;height: 105%;"
                         ></lightning-input>
                     </div>
                     <div class="slds-col slds-size_1-of-12">
