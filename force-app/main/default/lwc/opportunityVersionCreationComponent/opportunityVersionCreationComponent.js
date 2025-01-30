@@ -57,12 +57,24 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
     // Generate Version Name
     generateVersionName() {
         console.log('Generating version name');
+    
         return getRelatedOpportunityVersions({ opportunityId: this.opportunityId })
             .then((versions) => {
                 const count = versions.length;
-                this.versionName = `Version-${count + 1}`;
+    
+                // Filter versions where Type__c is 'Post-Sale'
+                const postSaleVersions = versions.filter(version => version.Type__c === 'Post-Sale');
+                const postSaleCount = postSaleVersions.length;
+    
+                let versionBaseName = `Version-${count + 1}`;
+    
+                // Append "Ch-{count}" only if it's Post-Sale
+                if (this.type === 'Post-Sale') {
+                    versionBaseName += ` Ch-${postSaleCount + 1}`;
+                }
+    
+                this.versionName = versionBaseName;
                 console.log('Generated version name:', this.versionName);
-                return this.versionName; // Return the generated name
             })
             .catch((error) => {
                 console.error('Error generating version name:', error);
