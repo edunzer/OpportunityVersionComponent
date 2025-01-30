@@ -10,7 +10,6 @@ import getOpportunityVersionLineItems from '@salesforce/apex/OpportunityVersionC
 import getOpportunityStage from '@salesforce/apex/OpportunityVersionComponentController.getOpportunityStage';
 
 import createVersion from '@salesforce/apex/OpportunityVersionComponentController.createVersion';
-import manageVersionLineItems from '@salesforce/apex/OpportunityVersionComponentController.manageVersionLineItems';
 
 export default class OpportunityVersionCreationComponent extends LightningModal {
     @api opportunityId; // Opportunity ID passed from the parent component
@@ -166,28 +165,44 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
 
     handleLineItemChange(event) {
         const { index, field } = event.target.dataset;
-        const selectedValue = event.target.value;
-        const lineItemIndex = this.versionLineItems.findIndex((item) => item.id == index);
-
-        if (lineItemIndex === -1) {
-            console.error('Invalid index. Line item not found.');
+        let value = event.target.value;
+    
+        // Find the line item using indexId
+        const lineItem = this.versionLineItems.find((item) => item.id === index);
+    
+        if (!lineItem) {
+            console.error('Invalid index. Line item not found:', index);
             return;
         }
-
-        console.log('Line item change at index:', index, 'Field:', field, 'New Value:', selectedValue);
-        if (field === 'Team__c') {
-            // Find the matching product using the selected Team__c
-            const matchingProduct = this.products.find(
-                (product) => product.value === selectedValue
-            );
-            // Update Team__c
-            this.versionLineItems[lineItemIndex].Team__c = matchingProduct ? matchingProduct.value : '';
-        } else if (['Price__c', 'Cost__c', 'Hours__c'].includes(field)) {
-            this.versionLineItems[lineItemIndex][field] = parseFloat(selectedValue) || 0;
+    
+        console.log('Line item change at index:', index, 'Field:', field, 'New Value:', value);
+    
+        if (field === 'Pricing_Complete__c') {
+            // Checkbox returns a boolean
+            lineItem.Pricing_Complete__c = event.target.checked;
+            console.log('Toggled Pricing Complete:', lineItem.Pricing_Complete__c);
+        } else if (field === 'Team__c') {
+            lineItem.Team__c = value;
+    
+            // Find the matching product
+            const matchingProduct = this.products.find((product) => product.value === value);
+            if (matchingProduct) {
+                lineItem.Team__c = matchingProduct.value;
+                console.log('Updated Team:', lineItem.Team__c);
+            } else {
+                console.warn('No matching product found for Team__c:', value);
+            }
+        } else if (['Hours__c', 'Price__c', 'Cost__c'].includes(field)) {
+            // Parse numeric fields
+            lineItem[field] = parseFloat(value) || 0;
         } else {
-            this.versionLineItems[lineItemIndex][field] = selectedValue;
+            // Update other fields
+            lineItem[field] = value;
         }
-    }
+    
+        // Ensure reactivity by updating the array reference
+        this.versionLineItems = [...this.versionLineItems];
+    }    
       
     handleDeleteLineItem(event) {
         const lineItemId = event.target.dataset.index; // Get the id of the item to delete
@@ -202,38 +217,35 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
     async handleSave() {
         console.log('Starting save operation for Version and Line Items');
         this.isLoading = true;
-
+    
         try {
             const newLineItems = this.versionLineItems.map((item) => ({
                 Team__c: item.Team__c,
                 Hours__c: item.Hours__c,
                 Price__c: item.Price__c,
                 Cost__c: item.Cost__c,
+                Pricing_Complete__c: item.Pricing_Complete__c // Ensure field is included
             }));
-
+    
             console.log('Prepared new line items for save:', newLineItems);
-
+    
+            // Pass line items directly into createVersion
             const versionId = await createVersion({
                 opportunityId: this.opportunityId,
                 versionName: this.versionName,
                 type: this.type, // Ensure type is passed correctly
-                newLineItems: [],
+                newLineItems: newLineItems, // Pass new line items directly
             });
-            
-
+    
             console.log('Created version with ID:', versionId);
-
-            await manageVersionLineItems({
-                newLineItems: newLineItems.map((item) => ({ ...item, VersionId: versionId })),
-                updatedLineItems: [],
-                deletedLineItemIds: [],
-            });
-
-            console.log('Successfully managed version line items');
-
+    
+            // No need for manageVersionLineItems since createVersion should handle it
+    
+            console.log('Successfully created version and line items');
+    
             publish(this.messageContext, OpportunityVersionRefreshChannel, { refresh: true });
             console.log('Published Version Refresh Channel');
-
+    
             this.close('save');
         } catch (error) {
             console.error('Error saving version and line items:', error);
@@ -242,7 +254,7 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
             this.isLoading = false;
             console.log('Save operation completed');
         }
-    }
+    }    
 
     handleCancel() {
         console.log('Canceling operation');
