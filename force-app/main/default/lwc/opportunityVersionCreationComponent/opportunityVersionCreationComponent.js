@@ -70,7 +70,8 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
     
                 // Append "Ch-{count}" only if it's Post-Sale
                 if (this.type === 'Post-Sale') {
-                    versionBaseName += ` Ch-${postSaleCount + 1}`;
+                    const chCount = postSaleCount > 0 ? postSaleCount + 1 : 1; // Ensure it starts at 1
+                    versionBaseName += ` Ch-${chCount}`;
                 }
     
                 this.versionName = versionBaseName;
