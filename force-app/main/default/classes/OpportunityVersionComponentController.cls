@@ -1,9 +1,20 @@
 public with sharing class OpportunityVersionComponentController {
     
+    @AuraEnabled(cacheable=true)
+    public static String getOpportunityStage(Id opportunityId) {
+        if (opportunityId == null) {
+            throw new AuraHandledException('Opportunity ID is required.');
+        }
+
+        Opportunity opp = [SELECT StageName FROM Opportunity WHERE Id = :opportunityId LIMIT 1];
+        return opp.StageName;
+    }
+
+    
     @AuraEnabled(cacheable=false)
     public static List<Opportunity_Version__c> getRelatedOpportunityVersions(Id opportunityId) {
         return [
-            SELECT Id, Name, Version_Name__c, Syncing__c, Status__c, Total_Price__c, Total_Hours__c, Total_Cost__c, 	Number_of_Opportunity_Version_Line_Items__c, Opportunity__c
+            SELECT Id, Name, Version_Name__c, Type__c, Syncing__c, Status__c, Total_Price__c, Total_Hours__c, Total_Cost__c, Number_of_Opportunity_Version_Line_Items__c, Opportunity__c
             FROM Opportunity_Version__c
             WHERE Opportunity__c = :opportunityId
             ORDER BY CreatedDate DESC
@@ -36,7 +47,7 @@ public with sharing class OpportunityVersionComponentController {
 
     // CREATE Version
     @AuraEnabled
-    public static Id createVersion(Id opportunityId, String versionName, List<Map<String, Object>> newLineItems) {
+    public static Id createVersion(Id opportunityId, String versionName, String type, List<Map<String, Object>> newLineItems) {
         if (opportunityId == null || String.isBlank(versionName)) {
             throw new AuraHandledException('Opportunity ID and Version Name are required for Version creation.');
         }
@@ -48,7 +59,8 @@ public with sharing class OpportunityVersionComponentController {
             Opportunity_Version__c newVersion = new Opportunity_Version__c(
                 Opportunity__c = opportunityId,
                 Version_Name__c = versionName,
-                Status__c = 'Draft'
+                Status__c = 'Draft',
+                Type__c = type
             );
             insert newVersion;
 

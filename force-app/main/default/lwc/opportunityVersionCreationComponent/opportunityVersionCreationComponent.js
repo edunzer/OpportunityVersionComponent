@@ -7,6 +7,7 @@ import OpportunityVersionRefreshChannel from '@salesforce/messageChannel/Opportu
 import getRelatedOpportunityVersions from '@salesforce/apex/OpportunityVersionComponentController.getRelatedOpportunityVersions';
 import getActiveProductsFromPriceBook from '@salesforce/apex/OpportunityVersionComponentController.getActiveProductsFromPriceBook';
 import getOpportunityVersionLineItems from '@salesforce/apex/OpportunityVersionComponentController.getOpportunityVersionLineItems';
+import getOpportunityStage from '@salesforce/apex/OpportunityVersionComponentController.getOpportunityStage';
 
 import createVersion from '@salesforce/apex/OpportunityVersionComponentController.createVersion';
 import manageVersionLineItems from '@salesforce/apex/OpportunityVersionComponentController.manageVersionLineItems';
@@ -14,6 +15,7 @@ import manageVersionLineItems from '@salesforce/apex/OpportunityVersionComponent
 export default class OpportunityVersionCreationComponent extends LightningModal {
     @api opportunityId; // Opportunity ID passed from the parent component
     versionName = '';
+    type = '';
     versionLineItems = [];
     products = [];
     isLoading = false;
@@ -23,9 +25,10 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
 
     connectedCallback() {
         console.log('Initializing Version Creation Component');
-        this.isLoading = true;
+        this.isLoading = true;   
+        this.determineVersionType()
         this.generateVersionName()
-            .then(() => this.loadProducts())
+        this.loadProducts()
             .then(() => this.loadSyncedVersionLineItems())
             .catch((error) => {
                 console.error('Error during initialization:', error);
@@ -37,6 +40,20 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
             });
     }
 
+    determineVersionType() {
+        console.log('Determining version type...');
+        return getOpportunityStage({ opportunityId: this.opportunityId })
+            .then((stageName) => {
+                console.log('Retrieved Opportunity Stage:', stageName); // Log the retrieved stage
+                this.type = stageName === '06-Closed Won' ? 'Post-Sale' : 'Pre-Sale';
+                console.log('Determined version type:', this.type);
+            })
+            .catch((error) => {
+                console.error('Error determining version type:', error);
+                this.setErrorMessage('Failed to determine Version Type.');
+            });
+    }    
+
     // Generate Version Name
     generateVersionName() {
         console.log('Generating version name');
@@ -45,7 +62,7 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
                 const count = versions.length;
                 this.versionName = `Version-${count + 1}`;
                 console.log('Generated version name:', this.versionName);
-                return versionName; // Return the generated name
+                return this.versionName; // Return the generated name
             })
             .catch((error) => {
                 console.error('Error generating version name:', error);
@@ -184,8 +201,10 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
             const versionId = await createVersion({
                 opportunityId: this.opportunityId,
                 versionName: this.versionName,
+                type: this.type, // Ensure type is passed correctly
                 newLineItems: [],
             });
+            
 
             console.log('Created version with ID:', versionId);
 
