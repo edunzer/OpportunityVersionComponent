@@ -127,6 +127,7 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
                         Price__c: item.Price__c || 0,
                         Cost__c: item.Cost__c || 0,
                         Pricing_Complete__c: item.Pricing_Complete__c || false,
+                        isLocked: item.Id ? true : false // NEW: Lock if ID exists
                     };
                 });
                 console.log('Loaded synced version line items:', this.versionLineItems);
@@ -158,6 +159,7 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
                 Price__c: 0,
                 Cost__c: 0,
                 Pricing_Complete__c: false,
+                isLocked: false // NEW: Ensure new items are editable
             },
         ];
     }

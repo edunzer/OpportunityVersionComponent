@@ -56,15 +56,11 @@ export default class OpportunityVersionEditComponent extends LightningModal {
         console.log('Loading version line items for Version ID:', this.versionId);
         return getOpportunityVersionLineItems({ versionId: this.versionId })
             .then((result) => {
-                // Deep copy the original items to ensure immutability and apply matchingProduct logic
+                // Deep copy the original items and apply matchingProduct logic
                 this.originalLineItems = result.map((item) => {
                     const matchingProduct = this.products.find(
                         (product) => product.label === item.Team_Name__c
                     );
-    
-                    if (!matchingProduct) {
-                        console.warn('No matching product found for Team__c:', item.Team__c);
-                    }
     
                     return JSON.parse(
                         JSON.stringify({
@@ -75,6 +71,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
                             Hours__c: item.Hours__c || 0,
                             Price__c: item.Price__c || 0,
                             Cost__c: item.Cost__c || 0,
+                            isLocked: item.Id ? true : false // NEW: Lock if ID exists
                         })
                     );
                 });
@@ -87,7 +84,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
                 console.error('Error loading version line items:', error);
                 this.setErrorMessage('Failed to load version line items.');
             });
-    }    
+    }      
 
     addVersionLineItem() {
         const newItem = {
@@ -98,10 +95,11 @@ export default class OpportunityVersionEditComponent extends LightningModal {
             Hours__c: 0,
             Price__c: 0,
             Cost__c: 0,
+            isLocked: false // NEW: Ensure new items are editable
         };
         this.versionLineItems = [...this.versionLineItems, newItem];
         console.log('Added new line item:', newItem);
-    }
+    }    
 
     handleLineItemChange(event) {
         const { index, field } = event.target.dataset;

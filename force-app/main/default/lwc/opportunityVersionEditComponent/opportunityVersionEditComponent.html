@@ -25,7 +25,8 @@
                             value={item.Team__c}
                             options={products}
                             placeholder="Select Team"
-                            onchange={handleLineItemChange}>
+                            onchange={handleLineItemChange}
+                            disabled={item.isLocked}>
                         </lightning-combobox>
                     </div>
                     <div class="slds-col slds-size_2-of-12">
