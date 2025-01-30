@@ -17,6 +17,8 @@
                 <div class="slds-col slds-size_2-of-12">Hours</div>
                 <div class="slds-col slds-size_2-of-12">Price</div>
                 <div class="slds-col slds-size_2-of-12">Cost</div>
+                <div class="slds-col slds-size_2-of-12">Pricing Complete</div>
+                <div class="slds-col slds-size_1-of-12">Remove</div>
             </div>
 
             <!-- Line Items -->
@@ -31,8 +33,7 @@
                             placeholder="Select Team"
                             onchange={handleLineItemChange}
                             disabled={item.isLocked}
-                            >
-                        </lightning-combobox>
+                        ></lightning-combobox>
                     </div>
                     <div class="slds-col slds-size_2-of-12">
                         <lightning-input
@@ -41,8 +42,7 @@
                             type="number"
                             value={item.Hours__c}
                             onchange={handleLineItemChange}
-                            >
-                        </lightning-input>
+                        ></lightning-input>
                     </div>
                     <div class="slds-col slds-size_2-of-12">
                         <lightning-input
@@ -52,8 +52,7 @@
                             step="0.01"
                             value={item.Price__c}
                             onchange={handleLineItemChange}
-                            >
-                        </lightning-input>
+                        ></lightning-input>
                     </div>
                     <div class="slds-col slds-size_2-of-12">
                         <lightning-input
@@ -63,8 +62,17 @@
                             step="0.01"
                             value={item.Cost__c}
                             onchange={handleLineItemChange}
-                            >
-                        </lightning-input>
+                        ></lightning-input>
+                    </div>
+                    <div class="slds-col slds-size_2-of-12">
+                        <lightning-input
+                            type="checkbox-button"
+                            data-index={item.id}
+                            data-field="Pricing_Complete__c"
+                            checked={item.Pricing_Complete__c}
+                            onchange={handleLineItemChange}
+                            style="display: flex; position: relative;align-items: flex-end;height: 105%;"
+                        ></lightning-input>
                     </div>
                     <div class="slds-col slds-size_1-of-12">
                         <lightning-button-icon
@@ -72,14 +80,14 @@
                             variant="border-filled"
                             alternative-text="Delete"
                             title="Delete"
-                            style="display: flex; position: relative;align-items: flex-end;height: 95%;"
                             data-index={item.id}
-                            onclick={handleDeleteLineItem}>
-                        </lightning-button-icon>
+                            onclick={handleDeleteLineItem}
+                            style="display: flex; position: relative;align-items: flex-end;height: 95%;"
+                        ></lightning-button-icon>
                     </div>
-                    
                 </div>
             </template>
+
         </div>
 
         <!-- Add Line Item Button -->

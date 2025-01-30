@@ -12,7 +12,8 @@
                 <div class="slds-col slds-size_2-of-12">Hours</div>
                 <div class="slds-col slds-size_2-of-12">Price</div>
                 <div class="slds-col slds-size_2-of-12">Cost</div>
-                <div class="slds-col slds-size_2-of-12">Remove</div>
+                <div class="slds-col slds-size_2-of-12">Pricing Complete</div>
+                <div class="slds-col slds-size_1-of-12">Remove</div>
             </div>
 
             <!-- Line Items -->
@@ -58,19 +59,30 @@
                             onchange={handleLineItemChange}>
                         </lightning-input>
                     </div>
+                    <div class="slds-col slds-size_2-of-12">
+                        <lightning-input
+                            type="checkbox-button"
+                            data-index={item.indexId}
+                            data-field="Pricing_Complete__c"
+                            checked={item.Pricing_Complete__c}
+                            onchange={handleLineItemChange}
+                            style="display: flex; position: relative;align-items: flex-end;height: 105%;">
+                        </lightning-input>
+                    </div>
                     <div class="slds-col slds-size_1-of-12">
                         <lightning-button-icon
                             icon-name="utility:delete"
                             variant="border-filled"
                             alternative-text="Delete"
                             title="Delete"
-                            style="display: flex; position: relative;align-items: flex-end;height: 95%;"
                             data-index={item.indexId}
-                            onclick={handleDeleteLineItem}>
+                            onclick={handleDeleteLineItem}
+                            style="display: flex; position: relative;align-items: flex-end;height: 95%;">
                         </lightning-button-icon>
                     </div>
                 </div>
             </template>
+            
         </div>
 
         <!-- Add Line Item Button -->
