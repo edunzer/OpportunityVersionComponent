@@ -1,5 +1,16 @@
 public with sharing class OpportunityVersionComponentController {
     
+    @AuraEnabled(cacheable=true)
+    public static String getOpportunityStage(Id opportunityId) {
+        if (opportunityId == null) {
+            throw new AuraHandledException('Opportunity ID is required.');
+        }
+
+        Opportunity opp = [SELECT StageName FROM Opportunity WHERE Id = :opportunityId LIMIT 1];
+        return opp.StageName;
+    }
+
+    
     @AuraEnabled(cacheable=false)
     public static List<Opportunity_Version__c> getRelatedOpportunityVersions(Id opportunityId) {
         return [
