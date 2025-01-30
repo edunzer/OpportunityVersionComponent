@@ -195,13 +195,15 @@ public with sharing class OpportunityVersionComponentController {
             Decimal hours = item.get('Hours__c') != null ? (Decimal)item.get('Hours__c') : 0;
             Decimal unitPrice = item.get('Price__c') != null ? (Decimal)item.get('Price__c') : 0;
             Decimal cost = item.get('Cost__c') != null ? (Decimal)item.get('Cost__c') : 0;
+            Boolean pricingComplete = item.get('Pricing_Complete__c') != null ? (Boolean)item.get('Pricing_Complete__c') : false;
 
             recordsToUpdate.add(new Opportunity_Version_Line_Item__c(
                 Id = (Id)item.get('Id'),
                 Team__c = (Id)item.get('Team__c'),
                 Hours__c = hours,
                 Price__c = unitPrice,
-                Cost__c = cost
+                Cost__c = cost,
+                Pricing_Complete__c = pricingComplete  // Ensure this field is included
             ));
         }
 

@@ -71,7 +71,8 @@ export default class OpportunityVersionEditComponent extends LightningModal {
                             Hours__c: item.Hours__c || 0,
                             Price__c: item.Price__c || 0,
                             Cost__c: item.Cost__c || 0,
-                            isLocked: item.Id ? true : false // NEW: Lock if ID exists
+                            Pricing_Complete__c: item.Pricing_Complete__c || false, // NEW: Include Pricing Complete
+                            isLocked: item.Id ? true : false // Lock if ID exists
                         })
                     );
                 });
@@ -95,6 +96,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
             Hours__c: 0,
             Price__c: 0,
             Cost__c: 0,
+            Pricing_Complete__c: false,
             isLocked: false // NEW: Ensure new items are editable
         };
         this.versionLineItems = [...this.versionLineItems, newItem];
@@ -103,7 +105,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
 
     handleLineItemChange(event) {
         const { index, field } = event.target.dataset;
-        const value = event.target.value;
+        let value = event.target.value;
     
         // Find the line item using indexId
         const lineItem = this.versionLineItems.find((item) => item.indexId === index);
@@ -115,8 +117,11 @@ export default class OpportunityVersionEditComponent extends LightningModal {
     
         console.log('Line item change at index:', index, 'Field:', field, 'New Value:', value);
     
-        if (field === 'Team__c') {
-            // Update Team__c
+        if (field === 'Pricing_Complete__c') {
+            // Checkbox returns a boolean
+            lineItem.Pricing_Complete__c = event.target.checked;
+            console.log('Toggled Pricing Complete:', lineItem.Pricing_Complete__c);
+        } else if (field === 'Team__c') {
             lineItem.Team__c = value;
     
             // Find the matching product
@@ -134,7 +139,10 @@ export default class OpportunityVersionEditComponent extends LightningModal {
             // Update other fields
             lineItem[field] = value;
         }
-    }       
+    
+        // Ensure reactivity by updating the array reference
+        this.versionLineItems = [...this.versionLineItems];
+    }     
 
     handleDeleteLineItem(event) {
         const indexId = event.target.dataset.index; // Use the placeholder or real ID
@@ -167,7 +175,8 @@ export default class OpportunityVersionEditComponent extends LightningModal {
                 original.Team__c !== item.Team__c ||
                 original.Hours__c !== item.Hours__c ||
                 original.Price__c !== item.Price__c ||
-                original.Cost__c !== item.Cost__c;
+                original.Cost__c !== item.Cost__c ||
+                Boolean(original.Pricing_Complete__c) !== Boolean(item.Pricing_Complete__c);
     
             if (isUpdated) {
                 console.log('Detected updated line item:', {
@@ -198,6 +207,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
             Hours__c: item.Hours__c,
             Price__c: item.Price__c,
             Cost__c: item.Cost__c,
+            Pricing_Complete__c: item.Pricing_Complete__c
         }));
     
         const mappedUpdatedLineItems = updatedLineItems.map((item) => ({
@@ -206,6 +216,7 @@ export default class OpportunityVersionEditComponent extends LightningModal {
             Hours__c: item.Hours__c,
             Price__c: item.Price__c,
             Cost__c: item.Cost__c,
+            Pricing_Complete__c: item.Pricing_Complete__c
         }));
     
         console.log('Prepared new line items:', mappedNewLineItems);
