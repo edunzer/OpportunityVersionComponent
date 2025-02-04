@@ -59,7 +59,7 @@ public with sharing class OpportunityVersionComponentController {
             Opportunity_Version__c newVersion = new Opportunity_Version__c(
                 Opportunity__c = opportunityId,
                 Version_Name__c = versionName,
-                Status__c = 'Draft',
+                Status__c = 'Needs Pricing',
                 Type__c = type
             );
             insert newVersion;
