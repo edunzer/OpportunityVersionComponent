@@ -25,9 +25,10 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
     connectedCallback() {
         console.log('Initializing Version Creation Component');
         this.isLoading = true;   
+    
         this.determineVersionType()
-        this.generateVersionName()
-        this.loadProducts()
+            .then(() => this.generateVersionName())  // Ensure type is set before generating name
+            .then(() => this.loadProducts())
             .then(() => this.loadSyncedVersionLineItems())
             .catch((error) => {
                 console.error('Error during initialization:', error);
@@ -37,7 +38,7 @@ export default class OpportunityVersionCreationComponent extends LightningModal 
                 this.isLoading = false;
                 console.log('Initialization complete');
             });
-    }
+    }    
 
     determineVersionType() {
         console.log('Determining version type...');
