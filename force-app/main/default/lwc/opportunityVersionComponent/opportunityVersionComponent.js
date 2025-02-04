@@ -267,8 +267,8 @@ export default class OpportunityVersionComponent extends LightningElement {
 
     completeVersion(row) {
         console.log('Approving version:', row);
-        const confirmSync = confirm('Are you sure you want to complete this version?');
-        if (!confirmSync) {
+        const confirmComplete = confirm('Are you sure you want to complete this version?');
+        if (!confirmComplete) {
             console.log('Approval cancelled by user');
             return;
         }
@@ -277,17 +277,17 @@ export default class OpportunityVersionComponent extends LightningElement {
 
         updateVersionStatus({ versionId: row.Id, status: 'Complete' })
             .then(() => {
-                console.log('Successfully synced version:', row);
+                console.log('Successfully completed version:', row);
                 const toastEvent = new ShowToastEvent({
                     title: 'Success',
-                    message: `Version ${row.Name} has been synced successfully.`,
+                    message: `Version ${row.Name} has been completed successfully.`,
                     variant: 'success',
                 });
                 this.dispatchEvent(toastEvent);
                 this.fetchRelatedVersions();
             })
             .catch((error) => {
-                console.error('Error syncing version:', error);
+                console.error('Error completing version:', error);
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
                     message: 'Failed to complete the version.',
