@@ -158,8 +158,8 @@ export default class OpportunityVersionComponent extends LightningElement {
             case 'copy':
                 this.copyToClipboard(row.Id); // Call the copyToClipboard method with the record ID
                 break;
-            case 'complete':
-                this.completeVersion(row);
+            case 'approve':
+                this.approveVersion(row);
                 break;
             case 'edit':
                 this.editVersion(row);
@@ -243,9 +243,9 @@ export default class OpportunityVersionComponent extends LightningElement {
                 iconName: 'utility:copy',
             },
         ];
-        if (row.Status__c === 'Needs Pricing' && !row.Syncing__c) {
+        if (row.Status__c === 'Draft' && !row.Syncing__c) {
             actions.push({
-                label: 'Complete',name: 'complete',iconName: 'utility:check',
+                label: 'Approve',name: 'approve',iconName: 'utility:check',
             },
             {
                 label: 'Edit',name: 'edit',iconName: 'utility:edit',
@@ -264,9 +264,9 @@ export default class OpportunityVersionComponent extends LightningElement {
         }, 200); // Simulate server-side processing
     }    
 
-    completeVersion(row) {
+    approveVersion(row) {
         console.log('Approving version:', row);
-        const confirmSync = confirm('Are you sure you want to complete this version?');
+        const confirmSync = confirm('Are you sure you want to approve this version?');
         if (!confirmSync) {
             console.log('Approval cancelled by user');
             return;
@@ -274,7 +274,7 @@ export default class OpportunityVersionComponent extends LightningElement {
 
         this.isVersionsLoading = true;
 
-        updateVersionStatus({ versionId: row.Id, status: 'Complete' })
+        updateVersionStatus({ versionId: row.Id, status: 'Approved' })
             .then(() => {
                 console.log('Successfully synced version:', row);
                 const toastEvent = new ShowToastEvent({
@@ -289,14 +289,14 @@ export default class OpportunityVersionComponent extends LightningElement {
                 console.error('Error syncing version:', error);
                 const toastEvent = new ShowToastEvent({
                     title: 'Error',
-                    message: 'Failed to complete the version.',
+                    message: 'Failed to approve the version.',
                     variant: 'error',
                 });
                 this.dispatchEvent(toastEvent);
             })
             .finally(() => {
                 this.isVersionsLoading = false;
-                console.log('Complete operation completed');
+                console.log('Approve operation completed');
             });
     }
 
