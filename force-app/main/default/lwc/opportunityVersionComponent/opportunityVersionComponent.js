@@ -257,9 +257,6 @@ export default class OpportunityVersionComponent extends LightningElement {
         if (row.Status__c === 'Obsolete' && !row.Syncing__c) {
             actions.push({
                 label: 'Delete',name: 'delete',iconName: 'utility:delete',
-            },
-            {
-                label: 'Complete',name: 'complete',iconName: 'utility:check',
             });
         }
         setTimeout(() => {
